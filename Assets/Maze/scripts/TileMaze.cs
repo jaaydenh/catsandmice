@@ -5,30 +5,24 @@ public class TileMaze : MonoBehaviour {
 
 	public WallTile wallPrefab;
 	public PathTile pathPrefab;
+	public DaCheese cheesePrefab;
 	public IntVectorTwo size;
+	public int numCheese;
+
+	private int[][] maze;
+	private DaCheese[] activeCheeses;
 
 	public void Generate () {
 		CreatePathTile (new IntVectorTwo (0, 0));
-		int[][] maze = GenerateMaze ();
+		maze = GenerateMaze ();
 
-		string line = "";
+		RenderMaze (maze);
 
-		// Display the array elements:
-//		for (int i = 0; i < maze.Length; i++)
-//		{
-//			for (int j = 0; j < maze[i].Length; j++)
-//			{
-//				var t = maze [i] [j];
-//				if (t == 1) {
-//					line += "X";
-//				} else {
-//					line += "_";
-//				}
-//			}
-//			line += "\n";
-//		}
+		activeCheeses = new DaCheese[numCheese];
+		RandomlyPlaceCheese ();
+	}
 
-//		print (line);
+	private void RenderMaze(int[][] maze) {
 
 		for (int i = 0; i < maze.Length; i++) {
 			for (int j = 0; j < maze [i].Length; j++) {
@@ -38,6 +32,32 @@ public class TileMaze : MonoBehaviour {
 					CreateWallTile (new IntVectorTwo (i, j));
 				} else {
 					CreatePathTile (new IntVectorTwo (i, j));
+				}
+			}
+		}
+	}
+
+	public void ClearAllCheese (){
+		// Clear all the cheese 
+		for (int i = 0; i < activeCheeses.Length; i++) {
+			DaCheese cheese = activeCheeses [i];
+			cheese.gameObject.SetActive (false);
+		}
+	}
+
+	public void RandomlyPlaceCheese () {
+		int height = size.y;
+		int width = size.x;
+
+		for (int i = 0; i < numCheese; i++) {
+			while (true) {
+				int r = Random.Range(0, height - 1);
+				int c = Random.Range(0, width - 1);
+
+				if (maze [r] [c] == 0) {
+					DaCheese cheese = CreateCheeseTile (new IntVectorTwo (r, c));
+					activeCheeses [i] = cheese;
+					break;
 				}
 			}
 		}
@@ -53,6 +73,13 @@ public class TileMaze : MonoBehaviour {
 		WallTile tile = Instantiate (wallPrefab) as WallTile;
 		tile.transform.parent = transform;
 		tile.transform.localPosition = new Vector2 (coordinates.x - size.x * 0.5f + 0.5f, coordinates.y - size.y * 0.5f + 0.5f);
+	}
+
+	private DaCheese CreateCheeseTile (IntVectorTwo coordinates) {
+		DaCheese tile = Instantiate (cheesePrefab) as DaCheese;
+		tile.transform.parent = transform;
+		tile.transform.localPosition = new Vector2 (coordinates.x - size.x * 0.5f + 0.5f, coordinates.y - size.y * 0.5f + 0.5f);
+		return tile;
 	}
 
 	public int[][] GenerateMaze() {
@@ -99,7 +126,7 @@ public class TileMaze : MonoBehaviour {
 
 			switch(randDirs[i]){
 			case 1: // Up
-				//　Whether 2 cells up is out or not
+				// Whether 2 cells up is out or not
 				if (r - 2 <= 0)
 					continue;
 				if (maze[r - 2][c] != 0) {
@@ -150,7 +177,7 @@ public class TileMaze : MonoBehaviour {
 	public int[] generateRandomDirections() {
 		int[] directions = new int[4]{1, 2, 3, 4};
 		Shuffle (directions);
-//		print (directions[0] + " " + directions[1] + " " + directions[2] + " " + directions[3]);
+		//		print (directions[0] + " " + directions[1] + " " + directions[2] + " " + directions[3]);
 		return directions;
 	}
 

@@ -14,6 +14,7 @@ public class CompletePlayerController : MonoBehaviour {
 	public float rechargeDuration;
 	public GameObject gauge;
 
+	private TileMaze maze;
 	private Rigidbody2D rb2d;		//Store a reference to the Rigidbody2D component required to use 2D Physics.
 	private int count;				//Integer to store the number of pickups collected so far.
 	private bool isDashing;
@@ -93,14 +94,9 @@ public class CompletePlayerController : MonoBehaviour {
 			//... then set the other object we just collided with to inactive.
 			other.gameObject.SetActive(false);
 			
-			//Add one to the current value of our count variable.
-			count = count + 1;
-			
-			//Update the currently displayed count by calling the SetCountText function.
-			SetCountText ();
+			maze.ClearAllCheese ();
+			maze.RandomlyPlaceCheese ();
 		}
-		
-
 	}
 
 	//This function updates the text displaying the number of objects we've collected and displays our victory message if we've collected all of them.
@@ -114,5 +110,9 @@ public class CompletePlayerController : MonoBehaviour {
 			//... then set the text property of our winText object to "You win!"
 			//winText.text = "You win!";
 		}
+	}
+		
+	public void SetMaze(TileMaze mazeInstance) {
+		maze = mazeInstance;
 	}
 }
