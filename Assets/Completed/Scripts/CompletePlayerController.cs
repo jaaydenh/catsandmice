@@ -9,9 +9,16 @@ public class CompletePlayerController : MonoBehaviour {
 	public float speed;				//Floating point variable to store the player's movement speed.
 	public Text countText;			//Store a reference to the UI Text component which will display the number of pickups collected.
 	public Text winText;			//Store a reference to the UI Text component which will display the 'You win' message.
+	public float dashSpeed;
+	public float dashDuration;
+	public float rechargeDuration;
+	public GameObject gauge;
 
 	private Rigidbody2D rb2d;		//Store a reference to the Rigidbody2D component required to use 2D Physics.
 	private int count;				//Integer to store the number of pickups collected so far.
+	private bool isDashing;
+	private bool isDashCharging;
+	private float timeSinceDash;
 
 	// Use this for initialization
 	void Start()
@@ -27,6 +34,14 @@ public class CompletePlayerController : MonoBehaviour {
 
 		//Call our SetCountText function which will update the text with the current value for count.
 		SetCountText ();
+
+		//Find Gauge object
+		gauge = GameObject.Find ("Gauge");
+
+		//Initialize dashing
+		isDashing = false;
+		isDashCharging = false;
+
 	}
 
 	//FixedUpdate is called at a fixed interval and is independent of frame rate. Put physics code here.
@@ -41,8 +56,32 @@ public class CompletePlayerController : MonoBehaviour {
 		//Use the two store floats to create a new Vector2 variable movement.
 		Vector2 movement = new Vector2 (moveHorizontal, moveVertical);
 
-		//Call the AddForce function of our Rigidbody2D rb2d supplying movement multiplied by speed to move our player.
-		rb2d.velocity = movement * speed;
+		if (Input.GetKeyDown ("z") && !isDashing && !isDashCharging) {
+			isDashing = true;
+			isDashCharging = true;
+
+			timeSinceDash = Time.time;
+
+		}
+
+		//Countdown for dashDuration
+		if (Time.time - timeSinceDash >= dashDuration) {
+			isDashing = false;
+		}
+
+		//Countdown for rechargeDuration
+		if (Time.time - timeSinceDash >= rechargeDuration) {
+			isDashCharging = false;
+		}
+
+		if (isDashing) {
+
+			rb2d.velocity = movement * (speed + dashSpeed);
+		} else {
+			rb2d.velocity = movement * speed;
+
+		}
+
 	}
 
 	//OnTriggerEnter2D is called whenever this object overlaps with a trigger collider.
