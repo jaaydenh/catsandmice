@@ -6,7 +6,8 @@ using UnityEngine.UI;
 
 public class CompletePlayerController : MonoBehaviour {
 
-	public float speed;				//Floating point variable to store the player's movement speed.
+	public float speed;
+	public Text cheeseText;
 	public Text scoreText;
 	public Text winText;			//Store a reference to the UI Text component which will display the 'You win' message.
 	public float dashSpeed;
@@ -16,10 +17,14 @@ public class CompletePlayerController : MonoBehaviour {
 	public GameObject gauge;
 	public string horizontalAxis;
 	public string verticalAxis;
+	public Sprite cat;
+	public Sprite mouse;
+	public GameObject otherPlayer;
 
 	private TileMaze maze;
 	private Rigidbody2D rb2d;		//Store a reference to the Rigidbody2D component required to use 2D Physics.
 	private int score;
+	private int cheeseCount;
 
 	private bool isDashing;
 	private bool isDashCharging;
@@ -38,6 +43,7 @@ public class CompletePlayerController : MonoBehaviour {
 		rb2d = GetComponent<Rigidbody2D> ();
 
 		score = 0;
+		cheeseCount = 0;
 
 		//Initialze winText to a blank string since we haven't won yet at beginning.
 		//winText.text = "";
@@ -53,6 +59,9 @@ public class CompletePlayerController : MonoBehaviour {
 
 		tunnelPositionBR = GameObject.Find ("TunnelBR").transform.position;
 		tunnelPositionBL = GameObject.Find ("TunnelBL").transform.position;
+
+		//Texture2D catTexture = Texture2D ();
+		//cat = Sprite.Create(	
 	}
 
 	//FixedUpdate is called at a fixed interval and is independent of frame rate. Put physics code here.
@@ -95,13 +104,21 @@ public class CompletePlayerController : MonoBehaviour {
 		}
 	}
 
+	void OnCollisionEnter2D(Collision2D coll) {
+		if (gameObject.tag == "Cat" && coll.gameObject.tag == "Player") {
+			score++;
+			CompletePlayerController player = coll.gameObject.GetComponent ("CompletePlayerController") as CompletePlayerController;
+			player.Reset ();
+			SetScoreText ();
+		}
+	}
+
 	//OnTriggerEnter2D is called whenever this object overlaps with a trigger collider.
 	void OnTriggerEnter2D(Collider2D other) 
 	{
 		//Check the provided Collider2D parameter other to see if it is tagged "PickUp", if it is...
 		if (other.gameObject.CompareTag ("PickUp")) {
-
-			score++;
+			cheeseCount++;
 
 			other.gameObject.SetActive (false);
 
@@ -123,14 +140,23 @@ public class CompletePlayerController : MonoBehaviour {
 
 		}
 	}
-		
+
+	void Reset() {
+		transform.localPosition = new Vector2 (-8.5f, 7.5f);
+	}
+
 	void SetScoreText()
 	{
-		scoreText.text = gameObject.name.ToString() + " Cheese: " + score.ToString ();
-
-		if (score >= 5) {
+		if (cheeseCount >= 3) {
+			cheeseCount = 0;
+			gameObject.tag = "Cat";
+			gameObject.GetComponent<SpriteRenderer> ().sprite = cat;
+			otherPlayer.tag = "Player";
+			otherPlayer.GetComponent<SpriteRenderer> ().sprite = mouse;
 
 		}
+		cheeseText.text = gameObject.name.ToString() + " Cheese: " + cheeseCount.ToString ();
+		scoreText.text = gameObject.name.ToString() + " Score: " + score.ToString ();
 	}
 		
 	public void SetMaze(TileMaze mazeInstance) {
