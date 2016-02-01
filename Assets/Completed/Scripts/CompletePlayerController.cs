@@ -12,7 +12,6 @@ public class CompletePlayerController : MonoBehaviour {
 	public float dashSpeed;
 	public float dashDuration;
 	public float rechargeDuration;
-	public GameObject gauge;
 
 	private TileMaze maze;
 	private Rigidbody2D rb2d;		//Store a reference to the Rigidbody2D component required to use 2D Physics.
@@ -20,6 +19,12 @@ public class CompletePlayerController : MonoBehaviour {
 	private bool isDashing;
 	private bool isDashCharging;
 	private float timeSinceDash;
+	private GameObject tunnel;
+	private GameObject Player;
+	private Vector2 tunnelPositionBR; //Position of tunnel bottom right
+	private Vector2 tunnelPositionBL; //Position of tunnel bottom right
+	private Vector2 playerPosition; //Current position of Player
+	private bool isTunnel; 
 
 	// Use this for initialization
 	void Start()
@@ -36,12 +41,17 @@ public class CompletePlayerController : MonoBehaviour {
 		//Call our SetCountText function which will update the text with the current value for count.
 		SetCountText ();
 
-		//Find Gauge object
-		gauge = GameObject.Find ("Gauge");
 
 		//Initialize dashing
 		isDashing = false;
 		isDashCharging = false;
+
+
+		//Initialize isTunnel
+		isTunnel = false;
+
+		tunnelPositionBR = GameObject.Find ("TunnelBR").transform.position;
+		tunnelPositionBL = GameObject.Find ("TunnelBL").transform.position;
 
 	}
 
@@ -82,22 +92,49 @@ public class CompletePlayerController : MonoBehaviour {
 			rb2d.velocity = movement * speed;
 
 		}
+		playerPosition = transform.position;
 
+		if (playerPosition == tunnelPositionBR || playerPosition == tunnelPositionBL) {
+			isTunnel = true;
+		} else {
+			isTunnel = false;
+		}
 	}
 
 	//OnTriggerEnter2D is called whenever this object overlaps with a trigger collider.
 	void OnTriggerEnter2D(Collider2D other) 
 	{
+
 		//Check the provided Collider2D parameter other to see if it is tagged "PickUp", if it is...
-		if (other.gameObject.CompareTag ("PickUp")) 
-		{
+		if (other.gameObject.CompareTag ("PickUp")) {
 			//... then set the other object we just collided with to inactive.
-			other.gameObject.SetActive(false);
-			
+			other.gameObject.SetActive (false);
+
 			maze.ClearAllCheese ();
 			maze.RandomlyPlaceCheese ();
+
+			//Add one to the current value of our count variable.
+			count = count + 1;
+			
+			//Update the currently displayed count by calling the SetCountText function.
+			SetCountText ();
+		} else if (other.gameObject.CompareTag ("Tunnel")) {
+			
+			if (isTunnel == false) {
+
+				if (other.gameObject.name == "TunnelBL") {
+						transform.position = tunnelPositionBR;
+				} else if (other.gameObject.name == "TunnelBR") {
+						transform.position = tunnelPositionBL;
+				}
+
+			}
+
 		}
 	}
+
+
+
 
 	//This function updates the text displaying the number of objects we've collected and displays our victory message if we've collected all of them.
 	void SetCountText()
